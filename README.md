@@ -40,7 +40,7 @@ This dataset can be used for various purposes, including:
 
 - Studying the distribution of topics and methods in computer vision research
 
-- Developing new machine learning models and techniques using the provided abstracts and keywords
+- And more!
 
 ## 🛠️ Dataset Creation
 
