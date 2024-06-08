@@ -24,7 +24,7 @@ The dataset includes the following information for each paper:
 
 - **🖼️ Image of the first page of the paper**
 - **📌 `title`:** The title of the paper
-- **👨‍🔬👩‍🔬 `authors_list:** The list of authors
+- **👨‍🔬👩‍🔬 `authors_list`:** The list of authors
 - **📄 `abstract`:** The abstract of the paper
 - **🔗 `arxiv_link`:** Link to the paper on arXiv
 - **🔗 `other_link`:** Link to the project page, if available
