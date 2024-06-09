@@ -55,19 +55,72 @@ taxonomy_map = {
  }
 
 
-template = """Extract a maximum of ten specific keywords from the title and abstract of a 2024 Computer Vision and Pattern Recognition (CVPR) conference paper, 
-related to deep learning topics such as computer vision, multimodal models, large language models, vision-language models, diffusion, transformers, and other relevant areas.
-
-Include any referenced artificial intelligence, computer vision, or deep learning techniques; such as datasets, or models as keywords.
-
-These keywords MUST be recognizable by current deep learning researchers, engineers, practitioners, and students.
+template = """Your task is to determine the appropriate keywords for an abstract given the title and abstract of a 2024 Computer Vision and Pattern Recognition (CVPR) conference paper. 
 
 The title for this paper is: {title}
 
 The abstract for this paper is: {abstract}
 
+Return a list of the most appropriate keywords for this paper. Your keywords must be one or more of the following:
+
+- 3D from multi-view and sensors  
+- 3D from single images  
+- Active agents
+- Adversarial attack and defense
+- Autonomous driving
+- Benchmarks
+- Biometrics  
+- Computational imaging  
+- Computer vision for social good  
+- Computer vision theory  
+- Datasets and evaluation  
+- Deep learning architectures and techniques  
+- Diffusion
+- Document analysis and understanding  
+- Efficient and scalable vision  
+- Embodied vision
+- Explainable computer vision  
+- Generative AI
+- Human movement
+- Image and video synthesis and generation  
+- Low-level vision  
+- Machine learning (other than deep learning)
+- Medical and biological vision, cell microscopy 
+- Multimodal learning
+- Optimization methods (other than deep learning)
+- Photogrammetry and remote sensing  
+- Physics-based vision and shape-from-X  
+- Prompting in vision
+- Object recognition
+- Object categorization
+- Object detection
+- Object retrieval  
+- Representation learning  
+- Robotics  
+- Scene analysis and understanding  
+- Segmentation
+- Grouping and shape analysis  
+- Self-supervised learning
+- Self-learning
+- Semi-supervised learning
+- Simulation
+- Meta-learning
+- Unsupervised learning
+- Transfer learning  
+- Zero-shot learning  
+- Few-shot learning  
+- Continual learning  
+- Long-tail learning  
+- Ethics in vision  
+- Video: Action and event understanding 
+- Low-level video analysis
+- Vision and graphics  
+- Vision language and reasoning  
+- Vision applications and systems
+
 \n{format_instructions}
 """
+
 
 # Define the format instructions
 format_instructions = CommaSeparatedListOutputParser().get_format_instructions()
