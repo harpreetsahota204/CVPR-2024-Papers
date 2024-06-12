@@ -1,10 +1,11 @@
-import pandas as pd
 import ast
 import os
+
+import re
+import pandas as pd
 from langchain.output_parsers import CommaSeparatedListOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
-
 
 taxonomy_map = {
     'cs.AI': 'Artificial Intelligence',
@@ -54,72 +55,74 @@ taxonomy_map = {
     'math.OC': 'Optimization and Control'
  }
 
-
-template = """Your task is to determine the appropriate keywords for an abstract given the title and abstract of a 2024 Computer Vision and Pattern Recognition (CVPR) conference paper. 
+template = """Given the title, abstract of a paper accepted to the 2024 Computer Vision and Pattern Recognition (CVPR) conference and a list of provided and approved keywords, your task is to select the appropriate keywords for an abstract based on the title and abstract of the paper presented at the 2024 Computer Vision and Pattern Recognition (CVPR) conference.
 
 The title for this paper is: {title}
 
 The abstract for this paper is: {abstract}
 
-Return a list of the most appropriate keywords for this paper. Your keywords must be one or more of the following:
+Return a list consisting of the most appropriate keywords for this paper. A paper can have multiple keywords. Select ONLY keywords from the following list of provided and approved keywords.
 
-- 3D from multi-view and sensors  
-- 3D from single images  
-- Active agents
-- Adversarial attack and defense
-- Autonomous driving
-- Benchmarks
-- Biometrics  
-- Computational imaging  
-- Computer vision for social good  
-- Computer vision theory  
-- Datasets and evaluation  
-- Deep learning architectures and techniques  
-- Diffusion
-- Document analysis and understanding  
-- Efficient and scalable vision  
-- Embodied vision
-- Explainable computer vision  
-- Generative AI
-- Human movement
-- Image and video synthesis and generation  
-- Low-level vision  
-- Machine learning (other than deep learning)
-- Medical and biological vision, cell microscopy 
-- Multimodal learning
-- Optimization methods (other than deep learning)
-- Photogrammetry and remote sensing  
-- Physics-based vision and shape-from-X  
-- Prompting in vision
-- Object recognition
-- Object categorization
-- Object detection
-- Object retrieval  
-- Representation learning  
-- Robotics  
-- Scene analysis and understanding  
-- Segmentation
-- Grouping and shape analysis  
-- Self-supervised learning
-- Self-learning
-- Semi-supervised learning
-- Simulation
-- Meta-learning
-- Unsupervised learning
-- Transfer learning  
-- Zero-shot learning  
-- Few-shot learning  
-- Continual learning  
-- Long-tail learning  
-- Ethics in vision  
-- Video: Action and event understanding 
-- Low-level video analysis
-- Vision and graphics  
-- Vision language and reasoning  
-- Vision applications and systems
+The provided and approved keywords are:
+```
+- 3D vision (multi-view, sensors, and single images)
+- Autonomous systems (driving, robotics, and embodied vision)
+- Deep learning architectures and techniques
+- Self-supervised, unsupervised, and semi-supervised learning
+- Meta-learning, transfer learning, and continual learning
+- Efficient and scalable vision
+- Datasets, benchmarks, and evaluation methods
+- Low-level vision
+- Object recognition, detection, and segmentation
+- Scene analysis and understanding
+- Generative AI (synthetic datasets, GANs, LLMs, and diffusion models)
+- Image and video generation and manipulation
+- Multimodal models and vision-language models
+- Large multimodal models and prompting techniques
+- Medical imaging and biological vision
+- Remote sensing and photogrammetry
+- Document analysis and understanding
+- Biometrics and human analysis
+- Computational imaging and physics-based vision
+- Vision applications for social good and ethics
+- Vision systems and graphics integration
+```
+
+Remember you MUST ONLY select keywords from the provided and approved keywords above. Your selected keywords MUST be based on the title and abstract of a paper. Under no circumstances are you allowed to select a keyword that does not appear 
+in the list of provided and approved keywords. A paper can have multiple keywords.
+
+Think step-by-step and understand the title and abstract before selecting the keywords.
 
 \n{format_instructions}
 """
+
+valid_keyword_list = [
+    "3D vision (multi-view, sensors, and single images)",
+    "Autonomous systems (driving, robotics, and embodied vision)",
+    "Deep learning architectures and techniques",
+    "Self-supervised, unsupervised, and semi-supervised learning",
+    "Meta-learning, transfer learning, and continual learning",
+    "Datasets, benchmarks, and evaluation methods",
+    "Low-level vision",
+    "Object recognition, detection, and segmentation",
+    "Scene analysis and understanding",
+    "Generative AI (synthetic datasets, GANs, LLMs, and diffusion models)",
+    "Image and video generation and manipulation",
+    "Multimodal models and vision-language models",
+    "Large multimodal models and prompting techniques",
+    "Deep learning architectures and techniques",
+    "Medical imaging and biological vision",
+    "Remote sensing and photogrammetry",
+    "Efficient and scalable vision",
+    "Document analysis and understanding",
+    "Biometrics and human analysis",
+    "Image and video synthesis and generation",
+    "Medical and biological vision",
+    "Vision applications for social good and ethics",
+    "Photogrammetry and remote sensing",
+    "Computational imaging and physics-based vision",
+    "Vision systems and graphics integration",
+]
 
 
 # Define the format instructions
@@ -153,10 +156,27 @@ def extract_keywords(row):
         print(f"Error processing row: {e}")
         return []
 
+def clean_keywords(keywords):
+    # Convert valid_keyword_list to lowercase for case-insensitive comparison
+    valid_keywords_lower = [keyword.lower() for keyword in valid_keyword_list]
+    
+    # Remove unwanted characters, convert to sentence case, and filter invalid keywords
+    cleaned_keywords = [
+        keyword.replace('```', '').replace('python\n', '').strip().capitalize() 
+        for keyword in keywords 
+        if keyword.lower() in valid_keywords_lower
+    ]
+    return cleaned_keywords
+
 # Define the main function
 def main(input_csv, output_csv):
     # Load the CSV file
     cvpr_papers = pd.read_csv(input_csv)
+    # Regular expression pattern to find URLs, excluding trailing periods
+    url_pattern = r'(https?://[^\s]+)\.?'
+
+    # Extract the first URL found in each summary and set it in the 'other_link' column
+    cvpr_papers['other_link'] = cvpr_papers['summary'].str.extract(url_pattern, expand=False)
 
     # Assuming taxonomy_map and map_categories are defined elsewhere
     cvpr_papers['category_name'] = cvpr_papers['primary_category'].map(taxonomy_map)
@@ -182,8 +202,12 @@ def main(input_csv, output_csv):
 
     # Extract keywords
     cvpr_papers['keywords'] = cvpr_papers.apply(extract_keywords, axis=1)
+    cvpr_papers['keywords'] = cvpr_papers.apply(extract_keywords, axis=1)
 
-    # Convert columns to list
+    # Apply the cleaning function to the 'keywords' column
+    cvpr_papers['keywords'] = cvpr_papers['keywords'].apply(clean_keywords)
+
+    # Convert columns to literal list
     columns_to_convert = ['all_categories', 'authors_list', 'keywords']
     for column in columns_to_convert:
         cvpr_papers[column] = cvpr_papers[column].apply(ast.literal_eval)
